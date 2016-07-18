@@ -25,10 +25,10 @@ import com.amazonservices.mws.products.MarketplaceWebServiceProductsConfig;
 public class MarketplaceWebServiceProductsSampleConfig {
 
     /** Developer AWS access key. */
-    private static final String accessKey = "**";
+    private static final String accessKey = "AKIAIIZE5SC2RDCV363Q";
 
     /** Developer AWS secret key. */
-    private static final String secretKey = "**";
+    private static final String secretKey = "vcgWacwCUnucMAXtWcQ8mHD2bFU7kJieNmw9+2hB";
 
     /** The client application name. */
     private static final String appName = "MyAWESOMEProductExporter'";

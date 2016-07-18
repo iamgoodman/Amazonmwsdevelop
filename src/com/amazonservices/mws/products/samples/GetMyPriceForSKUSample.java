@@ -16,8 +16,19 @@
 package com.amazonservices.mws.products.samples;
 
 import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.StringReader;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import java.io.StringReader;
 import java.math.BigDecimal;
+
 
 import com.amazonservices.mws.client.*;
 import com.amazonservices.mws.products.*;
@@ -36,10 +47,11 @@ public class GetMyPriceForSKUSample {
      * @return The response.
      */
     public static GetMyPriceForSKUResponse invokeGetMyPriceForSKU(
-    		
-    		
+
             MarketplaceWebServiceProducts client, 
-            GetMyPriceForSKURequest request) {
+            GetMyPriceForSKURequest request) 
+    
+    {
         try {
             // Call the service.
             GetMyPriceForSKUResponse response = client.getMyPriceForSKU(request);
@@ -72,6 +84,9 @@ public class GetMyPriceForSKUSample {
      */
     public static void main(String[] args) {
 
+    	
+    	
+    	
         // Get a client connection.
         // Make sure you've set the variables in MarketplaceWebServiceProductsSampleConfig.
         MarketplaceWebServiceProductsClient client = MarketplaceWebServiceProductsSampleConfig.getClient();
@@ -101,8 +116,88 @@ public class GetMyPriceForSKUSample {
     
 
         // Make the call.
-        GetMyPriceForSKUSample.invokeGetMyPriceForSKU(client, request);
+        String r = GetMyPriceForSKUSample.invokeGetMyPriceForSKU(client, request).toXML();
+        
+        
+        
+             System.out.println(r);
+     
+        
+//sax parser for xml
+
+        try {
+        	
+
+        	SAXParserFactory factory = SAXParserFactory.newInstance();
+        	SAXParser saxParser = factory.newSAXParser();
+
+        	DefaultHandler handler = new DefaultHandler() {
+
+        	boolean SellerSKU = false;
+        	boolean CurrencyCode = false;
+        	boolean Amount = false;
+        	
+
+        	public void startElement(String uri, String localName,String qName, 
+                        Attributes attributes) throws SAXException {
+
+        		System.out.println("Start Element :" + qName);
+
+        		if (qName.equalsIgnoreCase("SellerSKU")) {
+        			SellerSKU = true;
+        		}
+
+        		if (qName.equalsIgnoreCase("CurrencyCode")) {
+        			CurrencyCode = true;
+        		}
+
+        		if (qName.equalsIgnoreCase("Amount")) {
+        			Amount = true;
+        		}
+
+        		
+
+        	}
+
+        	public void endElement(String uri, String localName,
+        		String qName) {
+
+        		System.out.println("End Element :" + qName);
+
+        	}
+
+        	public void characters(char ch[], int start, int length) {
+
+        		if (SellerSKU) {
+        			System.out.println(" SellerSKU : " + new String(ch, start, length));
+        			 SellerSKU = false;
+        		}
+
+        		if (CurrencyCode) {
+        			System.out.println("CurrencyCode : " + new String(ch, start, length));
+        			CurrencyCode = false;
+        		}
+
+        		if (Amount) {
+        			System.out.println("Amount : " + new String(ch, start, length));
+        			Amount = false;
+        		}
+
+        	
+        	}
+
+             };
+
+             saxParser.parse(new InputSource(new StringReader(r)), handler);
+         
+             } catch (Exception e) {
+               e.printStackTrace();
+             }
+          
+           }
+
+        
 
     }
 
-}
+
