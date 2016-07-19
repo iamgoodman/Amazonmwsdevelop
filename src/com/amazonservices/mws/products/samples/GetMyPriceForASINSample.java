@@ -76,11 +76,11 @@ public class GetMyPriceForASINSample {
 
         // Create a request.
         GetMyPriceForASINRequest request = new GetMyPriceForASINRequest();
-        String sellerId = "	A3CQ5833KTZ4RX";
+        String sellerId = "	***";
         request.setSellerId(sellerId);
-        String mwsAuthToken = "amzn.mws.62aaf525-83a7-da43-f559-35d20e40b35e";
+        String mwsAuthToken = "***";
         request.setMWSAuthToken(mwsAuthToken);
-        String marketplaceId = "ATVPDKIKX0DER";
+        String marketplaceId = "***";
         request.setMarketplaceId(marketplaceId);
         
         ASINListType asinList = new ASINListType();

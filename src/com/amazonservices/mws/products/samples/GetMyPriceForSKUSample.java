@@ -97,11 +97,11 @@ public class GetMyPriceForSKUSample {
         
         // Create a request.
         GetMyPriceForSKURequest request = new GetMyPriceForSKURequest();
-        String sellerId = "A3CQ5833KTZ4RX";
+        String sellerId = "***";
         request.setSellerId(sellerId);
-        String mwsAuthToken = "amzn.mws.62aaf525-83a7-da43-f559-35d20e40b35e";
+        String mwsAuthToken = "***";
         request.setMWSAuthToken(mwsAuthToken);
-        String marketplaceId = "ATVPDKIKX0DER";
+        String marketplaceId = "***";
         request.setMarketplaceId(marketplaceId);
         
         SellerSKUListType sellerSKUList = new SellerSKUListType();
