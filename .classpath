@@ -9,5 +9,7 @@
 	<classpathentry kind="lib" path="dist/MWSClientJavaRuntime-1.0.jar"/>
 	<classpathentry kind="lib" path="dist/MWSProducts_2011-10-01_v2016-06-01.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Users/aps-peter/Desktop/Git/APSMWStest2/third-party/poi-3.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/aps-peter/Desktop/Git/APSMWStest2/third-party/poi-ooxml-3.5-beta5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
