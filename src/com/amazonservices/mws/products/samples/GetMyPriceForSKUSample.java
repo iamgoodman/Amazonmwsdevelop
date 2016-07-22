@@ -16,7 +16,10 @@
 package com.amazonservices.mws.products.samples;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 
@@ -54,6 +57,11 @@ public class GetMyPriceForSKUSample {
      *
      * @return The response.
      */
+	
+	//global variable to store retrieved sku and selling price
+	  public static String s,sp;
+	  
+	  
     public static GetMyPriceForSKUResponse invokeGetMyPriceForSKU(
 
             MarketplaceWebServiceProducts client, 
@@ -89,19 +97,24 @@ public class GetMyPriceForSKUSample {
 
     /**
      *  Command line entry point.
+     * @throws IOException 
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
     	
+        //create hasmap to store SKU and price pairs.
+        
+        HashMap<String, String> newmap = new HashMap<String, String> (); 
     	
-    	
-    	 
-    	//To read input ASINs as excel formatt and parse into java, stored as arrayList
-    	
+    
+
+        
+     
+        
     	 // Location of the source file
-       String sourceFilePath = "Y:\\Staffs\\Joey\\rep.xls";
+       String sourceFilePath = "Y:\\Staffs\\Joey\\Developer\\JoeyAdvisor\\AmazonListingFileLite1.xls";
        
-      
+ 
     		   
        FileInputStream fileInputStream = null;
          
@@ -192,12 +205,13 @@ public class GetMyPriceForSKUSample {
         
         // Create a request.
         GetMyPriceForSKURequest request = new GetMyPriceForSKURequest();
-        String sellerId = "***";
+        String sellerId = "****";
         request.setSellerId(sellerId);
         String mwsAuthToken = "***";
         request.setMWSAuthToken(mwsAuthToken);
         String marketplaceId = "***";
         request.setMarketplaceId(marketplaceId);
+
         
         SellerSKUListType sellerSKUList = new SellerSKUListType();
         
@@ -207,14 +221,16 @@ public class GetMyPriceForSKUSample {
         
         request.setSellerSKUList(sellerSKUList);
         
-    //unable to get maxium 
+    //unable to send all request once, reaches maxium, need to send one at a time.  
      for (int i =0;i<str.size();i++)
     	 
      {
     	 
-    	 List<String> a = new ArrayList<String>();
+         List<String> a = new ArrayList<String>();
     	 
     	 a.add(str.get(i));
+    	 
+ 
     	 sellerSKUList.setSellerSKU(a);
     	 
   
@@ -223,10 +239,10 @@ public class GetMyPriceForSKUSample {
         
         
         
-             System.out.println(r);
+         /*    System.out.println(r);*/
      
         
-//sax parser for xml
+//sax parser for xml, retrieve selling price
 
         try {
         	
@@ -237,73 +253,118 @@ public class GetMyPriceForSKUSample {
         	DefaultHandler handler = new DefaultHandler() {
 
         	boolean SellerSKU = false;
-        	boolean CurrencyCode = false;
-        	boolean Amount = false;
-        	boolean BuyingPrice = false;
+        
+            //Only need to read sku once
+            boolean toprint = true;
+        	
+       
+        	boolean SellingPrice = false;
         	
 
         	public void startElement(String uri, String localName,String qName, 
                         Attributes attributes) throws SAXException {
 
-        		System.out.println("Start Element :" + qName);
+        		/*System.out.println("Start Element :" + qName);*/
         		
-        		if (qName.equalsIgnoreCase("BuyingPrice")) {
-        			BuyingPrice = true;
+        		if (qName.equalsIgnoreCase("ListingPrice") ) {
+        		
+        			
+        		  SellingPrice = true;
+        		    
+        			 
         		}
         		
         		if (qName.equalsIgnoreCase("SellerSKU")) {
         			SellerSKU = true;
+        			
         		}
 
-        		if (qName.equalsIgnoreCase("CurrencyCode")) {
-        			CurrencyCode = true;
-        		}
-
-        		if (qName.equalsIgnoreCase("Amount")) {
-        			Amount = true;
-        		}
-
-        		
+       		
 
         	}
 
         	public void endElement(String uri, String localName,
         		String qName) {
 
-        		System.out.println("End Element :" + qName);
 
+				
+        		
+        		if (qName.equalsIgnoreCase("ListingPrice")) {
+        			
+        			SellingPrice = false;
+        		}
+        		
+        		if (qName.equalsIgnoreCase("SellerSKU")) {
+        			   SellerSKU = false;
+        		}
+
+        		
         	}
 
         	public void characters(char ch[], int start, int length) {
 
-        		if (SellerSKU) {
+        
+        		
+        		if (SellerSKU && toprint) {
+        			
+        			
         			System.out.println(" SellerSKU : " + new String(ch, start, length));
-        			 SellerSKU = false;
+        			
+        			String sku = new String(ch, start, length);
+        			 
+        			 s= sku;
+ 	
+        			 toprint = false;
+        			
+        			
+        			 
         		}
 
-        		if (CurrencyCode) {
-        			System.out.println("CurrencyCode : " + new String(ch, start, length));
-        			CurrencyCode = false;
-        		}
-
-        		if (Amount) {
-        			System.out.println("Amount : " + new String(ch, start, length));
-        			Amount = false;
-        		}
+      
         		
-        		
-        		if (BuyingPrice) {
-        			System.out.println("Amount : " + new String(ch, start, length));
-        			BuyingPrice = false;
-        		}
-
-
+        		if (SellingPrice) {
+        			
+        			String c = new String(ch, start, length);
+        			 
+        			 if(c.contains("USD"))
+        			 {
+        				 
+        				 
+        				 System.out.println("this is currency code");
+        				 
+        			 }
+        			 else
+        			 {
+        				 System.out.println("Amount : " + new String(ch, start, length));
         	
+        				 String bp = new String(ch, start, length);
+        			 
+        				 System.out.println("selling price is " + bp);
+        	                  
+        				 sp = bp;
+        			 }
+        			 
+        		
+        			 newmap.put(s,sp);
+        			
+        		}
+        		
+        		
+        		
+     
+                       
+        		
         	}
 
              };
 
-             saxParser.parse(new InputSource(new StringReader(r)), handler);
+            saxParser.parse(new InputSource(new StringReader(r)), handler);
+             
+     
+            
+	           
+	 
+	           
          
              } catch (Exception e) {
                e.printStackTrace();
@@ -311,7 +372,54 @@ public class GetMyPriceForSKUSample {
           
            }
 
-        
+     
+     
+     
+     //write retrieved price to excel     
+     
+     HSSFWorkbook wb = new HSSFWorkbook();
+		HSSFSheet sheet = wb.createSheet("new sheet");
+     
+		 int rowIndex = 1; 
+
+     
+        for (Entry<String, String> entry : newmap.entrySet()) {
+        	
+        	
+        	
+             String key = entry.getKey();
+              String values = entry.getValue();
+            
+              
+              Row row = sheet.createRow(rowIndex++);
+              
+		        sheet.createRow(0).createCell(0).setCellValue("SKU");
+		        sheet.getRow(0).createCell(1).setCellValue("Selling Price");
+              
+		        row.createCell(0).setCellValue(key);
+		        row.createCell(1).setCellValue(values);
+              
+             
+		        System.out.println("Key = " + key);
+		          System.out.println("Values = " + values );
+		              
+              
+          }
+         
+     
+	        String fileName = "Y:\\Staffs\\Joey\\Developer\\JoeyAdvisor\\AmazonSellingPrice.xls";
+	        
+	        FileOutputStream fileOut = new FileOutputStream(fileName);
+	        
+	        wb.write(fileOut);
+			    
+	
+		        fileOut.close();
+	
+		        
+		        System.out.println("file created");
+
+	       
 
     }
 

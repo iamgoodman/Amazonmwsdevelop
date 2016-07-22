@@ -24,17 +24,19 @@ import com.amazonservices.mws.products.MarketplaceWebServiceProductsConfig;
  */
 public class MarketplaceWebServiceProductsSampleConfig {
 
+
     /** Developer AWS access key. */
     private static final String accessKey = "***";
 
     /** Developer AWS secret key. */
-    private static final String secretKey = "***";
+    private static final String secretKey = "****";
 
     /** The client application name. */
     private static final String appName = "MyAWESOMEProductExporter'";
 
     /** The client application version. */
     private static final String appVersion = "1.1.391";
+;
 
     /**
      * The endpoint for region service and version.
