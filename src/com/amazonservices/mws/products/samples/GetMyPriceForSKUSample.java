@@ -68,30 +68,48 @@ public class GetMyPriceForSKUSample {
             GetMyPriceForSKURequest request) 
     
     {
+    	
         try {
+        	
             // Call the service.
             GetMyPriceForSKUResponse response = client.getMyPriceForSKU(request);
+            
             ResponseHeaderMetadata rhmd = response.getResponseHeaderMetadata();
+            
             // We recommend logging every the request id and timestamp of every call.
             System.out.println("Response:");
+            
             System.out.println("RequestId: "+rhmd.getRequestId());
+            
             System.out.println("Timestamp: "+rhmd.getTimestamp());
+            
             String responseXml = response.toXML();
+            
             System.out.println(responseXml);
+            
             return response;
         } catch (MarketplaceWebServiceProductsException ex) {
+        	
             // Exception properties are important for diagnostics.
             System.out.println("Service Exception:");
+            
             ResponseHeaderMetadata rhmd = ex.getResponseHeaderMetadata();
+            
             if(rhmd != null) {
+            	
                 System.out.println("RequestId: "+rhmd.getRequestId());
+                
                 System.out.println("Timestamp: "+rhmd.getTimestamp());
             }
+            
             System.out.println("Message: "+ex.getMessage());
+            
             System.out.println("StatusCode: "+ex.getStatusCode());
+            
             System.out.println("ErrorCode: "+ex.getErrorCode());
+            
             System.out.println("ErrorType: "+ex.getErrorType());
-            throw ex;
+            throw ex;                                                                                                                              
         }
     }
 
@@ -229,8 +247,7 @@ public class GetMyPriceForSKUSample {
          List<String> a = new ArrayList<String>();
     	 
     	 a.add(str.get(i));
-    	 
- 
+   
     	 sellerSKUList.setSellerSKU(a);
     	 
   
@@ -254,7 +271,7 @@ public class GetMyPriceForSKUSample {
 
         	boolean SellerSKU = false;
         
-            //Only need to read sku once
+            //Only need to read sku once, this variable is to avoid the reprint of sku twice.
             boolean toprint = true;
         	
        
@@ -367,6 +384,8 @@ public class GetMyPriceForSKUSample {
 	           
          
              } catch (Exception e) {
+            	 
+            	 
                e.printStackTrace();
              }
           
@@ -377,50 +396,84 @@ public class GetMyPriceForSKUSample {
      
      //write retrieved price to excel     
      
-     HSSFWorkbook wb = new HSSFWorkbook();
+     	HSSFWorkbook wb = new HSSFWorkbook();
+     	
+     	
 		HSSFSheet sheet = wb.createSheet("new sheet");
      
+	
 		 int rowIndex = 1; 
 
      
-        for (Entry<String, String> entry : newmap.entrySet()) {
+		 	for (Entry<String, String> entry : newmap.entrySet()) {
         	
         	
         	
-             String key = entry.getKey();
-              String values = entry.getValue();
-            
-              
-              Row row = sheet.createRow(rowIndex++);
-              
-		        sheet.createRow(0).createCell(0).setCellValue("SKU");
-		        sheet.getRow(0).createCell(1).setCellValue("Selling Price");
-              
-		        row.createCell(0).setCellValue(key);
-		        row.createCell(1).setCellValue(values);
-              
-             
-		        System.out.println("Key = " + key);
-		          System.out.println("Values = " + values );
-		              
-              
-          }
-         
-     
-	        String fileName = "Y:\\Staffs\\Joey\\Developer\\JoeyAdvisor\\AmazonSellingPrice.xls";
-	        
-	        FileOutputStream fileOut = new FileOutputStream(fileName);
-	        
-	        wb.write(fileOut);
-			    
-	
+	             String key = entry.getKey();
+	             String values = entry.getValue();
+	            
+	              
+	              Row row = sheet.createRow(rowIndex++);
+	              
+			      
+	              	sheet.createRow(0).createCell(0).setCellValue("SKU");
+	              	
+			        sheet.getRow(0).createCell(1).setCellValue("Selling Price");
+	              
+			        
+			        row.createCell(0).setCellValue(key);
+			        
+			        
+			        row.createCell(1).setCellValue(values);
+			        
+			        
+	              
+	             
+			        System.out.println("Key = " + key);
+			        
+                   
+			        
+			        System.out.println("Values = " + values );
+			        
+			              
+			        
+	              
+	          }
+	         
+		 	
+		 	
+	     
+		        String fileName = "Y:\\Staffs\\Joey\\Developer\\JoeyAdvisor\\AmazonSellingPrice.xls";
+		        
+		        
+		        
+		        
+		        
+		        FileOutputStream fileOut = new FileOutputStream(fileName);
+		        
+		        
+		        
+		        
+		        
+		        wb.write(fileOut);
+		        
+		        
+		        
+		        
+				 
+		        
 		        fileOut.close();
-	
+		        
+   
+
+		        
+		        
 		        
 		        System.out.println("file created");
-
-	       
-
-    }
+	
+		        
+		        
+	
+	    }
 
 }
