@@ -17,14 +17,19 @@ package com.amazonservices.mws.products.samples;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.soap.Node;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -32,6 +37,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -39,11 +45,19 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.StringReader;
 import java.math.BigDecimal;
-
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import com.amazonservices.mws.client.*;
+/*import com.amazonservices.mws.orders._2013_09_01.samples.Amazonorders;*/
 import com.amazonservices.mws.products.*;
 import com.amazonservices.mws.products.model.*;
+import com.google.common.collect.Lists;
 
 
 /** Sample call for GetMyPriceForSKU. */
@@ -87,7 +101,196 @@ public class GetMyPriceForSKUSample {
             
             System.out.println(responseXml);
             
+            
+            
+            
+
+            //Dom parser to par XML
+            
+            //intiliaze db connection here, do not put set up connection inside of loop, else multiple times will be executed 
+            
+            String url = "0";
+            String username = "0";
+            String password = "0";
+            
+            System.out.println("Loading driver...");
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+                System.out.println("Driver loaded!");
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+            }
+            
+            
+            
+            System.out.println("Connecting database...");
+            
+            
+            try {	
+            	
+            	//Initialize new Obj to add retrieved data to DB each time it is being retreived 
+            	AmazonListing al = new AmazonListing(password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password, password);
+            	
+               /*
+                //Does not work, input is a string, only takes afile 
+                  File inputFile = new File(responseXml);*/
+            	
+            	//must use input as inputstream
+            	
+            	InputStream stream = new ByteArrayInputStream(responseXml.getBytes(StandardCharsets.UTF_8));
+                
+                DocumentBuilderFactory dbFactory 
+                
+                   = DocumentBuilderFactory.newInstance();
+                
+                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                
+                org.w3c.dom.Document doc = dBuilder.parse(stream);
+                
+                doc.getDocumentElement().normalize();
+                
+                System.out.println("Root element :" 
+                   + doc.getDocumentElement().getNodeName());
+                
+                //reach the tag name of the very first node, and looping through each sku and selling price
+                NodeList nList = doc.getElementsByTagName("GetMyPriceForSKUResult");
+                
+                System.out.println("----------------------------");
+                
+                for (int temp = 0; temp < nList.getLength(); temp++) {
+                	
+                   org.w3c.dom.Node nNode = nList.item(temp);
+                   
+                   System.out.println("\nCurrent Element :" 
+                		   
+                      + nNode.getNodeName());
+                   
+                   if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                	   
+                	   /*System.out.println("im Here");*/
+                	   
+                    /* 
+                     //**Critical Error, Node can not be cast to type element
+                      Node eElement = (Element) nNode;*/
+                      
+                	   org.w3c.dom.Node eElement =  nNode;
+                     
+                      
+                      /*System.out.println("Im inside of an order");*/
+                      
+                      System.out.println("SKU : " 
+                    		  
+                         + ((org.w3c.dom.Element) eElement)
+                         
+                         .getElementsByTagName("SellerSKU")
+                         .item(0)
+                         .getTextContent());
+                      
+                      
+                      
+                 
+                      //set order id to orders obj
+                      al.setSku(
+                    		  ((org.w3c.dom.Element) eElement) 
+                         .getElementsByTagName("SellerSKU")
+                         .item(0)
+                         .getTextContent());
+                      
+                      
+                    
+                    //set Name to orders 
+                 try{     
+                    
+                     String price = (((org.w3c.dom.Element) eElement) 
+                     .getElementsByTagName("ListingPrice")
+                     .item(0)
+                     .getTextContent());
+                     
+                    al.setSellingprice(price);
+                    
+                    System.out.println("selling price for"+""+al.getSku()+""+"is"+""+al.getSellingprice());
+                     
+                 }
+                 catch(NullPointerException e){
+                     
+               
+                    
+                    	 
+                    	 System.out.println("no price, no vales will be set to selling price");
+                    	 
+                    	 al.setSellingprice(
+                           		 "");
+                        	 
+                    	 
+         
+                 };
+            
+            
+                 //write to db
+                 
+                 try (Connection connection = DriverManager.getConnection(url, username, password)) {
+                 	
+                 	
+                     System.out.println("Database connected!");
+                     
+            
+            
+            
+                     
+                  // Update DB
+                     String query = "UPDATE AmazonListing SET SellingPrice = ? WHERE SKU = ? ";
+                     
+                     //create the mysql insert preparedstatement
+                     
+                     PreparedStatement preparedStmt = (PreparedStatement) connection.prepareStatement(query);
+                    
+                     //insert values to be updated to statement 
+                     
+                     preparedStmt.setString(1,al.getSellingprice());
+                     
+                     preparedStmt.setString(2,al.getSku());
+            
+            
+                     // execute the preparedstatement
+                     preparedStmt.execute();
+                     System.out.println("Updated");
+                     
+                     
+                     
+                     //after inserting, close the connection of db
+                     connection.close();
+                     
+                
+                 
+            
+            
+                 }catch (SQLException e) {
+                     throw new IllegalStateException("Cannot connect the database!", e);
+                 }
+                 
+                   }
+                   
+                }
+                
+                
+            }catch (Exception e) {
+           	 
+           	 System.out.println("here is the canceled Order");
+           	 
+
+               e.printStackTrace();
+               
+            
+            
+            
+            }
+            
+            
+            
+            
+            
             return response;
+        
         } catch (MarketplaceWebServiceProductsException ex) {
         	
             // Exception properties are important for diagnostics.
@@ -116,103 +319,94 @@ public class GetMyPriceForSKUSample {
     /**
      *  Command line entry point.
      * @throws IOException 
+     * @throws InterruptedException 
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
-    	
-        //create hasmap to store SKU and price pairs.
-        
-        HashMap<String, String> newmap = new HashMap<String, String> (); 
-    	
-    
-
-        
-     
-        
-    	 // Location of the source file
-       String sourceFilePath = "Y:\\Staffs\\Joey\\Developer\\JoeyAdvisor\\AmazonListingFileLite1.xls";
-       
  
-    		   
-       FileInputStream fileInputStream = null;
-         
-       // Array List to store the excel sheet data
-       ArrayList excelData = new ArrayList();
-       
-       
-     //String array to store SKUs to get price
-       List<String> str = new ArrayList<String>();
-
-         
-       //A more robust importing method for importing excel data to arrays
-       try {
-             
-           // FileInputStream to read the excel file
-           fileInputStream = new FileInputStream(sourceFilePath);
-
-           // Create an excel workbook
-           HSSFWorkbook excelWorkBook = new HSSFWorkbook(fileInputStream);
-             
-           // Retrieve the first sheet of the workbook.
-           HSSFSheet excelSheet = excelWorkBook.getSheetAt(0);
-             
-         
-           // Iterate through the sheet rows and cells. 
-           // Store the retrieved data in an arrayList
-           java.util.Iterator<Row> rows = excelSheet.rowIterator();
-           while (rows.hasNext()) {
-               HSSFRow row = (HSSFRow) rows.next();
-               java.util.Iterator<Cell> cells = row.cellIterator();
-
-               ArrayList cellData = new ArrayList();
-               while (cells.hasNext()) {
-                   HSSFCell cell = (HSSFCell) cells.next();
-                   cellData.add(cell);
-               }
-
-               excelData .add(cellData);
-           }
-             
-
-           for(int i = 0; i<excelData.size();i++)
-           {
-          	 
-          	 
-          	String a = (excelData.get(i).toString().split(",")[0]);
-          	
-          	System.out.println(a.substring(1, a.length()));
-          	
-          	str.add(a.substring(1, a.length()));
-          	 
-           }
+    	//retrieve SKU from DB
+    	
+//open db connection to retireve skus.
+        
+    	String url = "0";
+        String username = "0";
+        String password = "0";
+        
+        System.out.println("Loading driver...");
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            System.out.println("Driver loaded!");
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+        }
+        
+        System.out.println("Connecting database...");
+        
+        
+        
+        
+        
+        try (Connection connection = DriverManager.getConnection(url, username, password)) {
+        	
+        	
+            System.out.println("Database connected!");
+            
+            
+            
+            
+            //if successfully connected, will begin to retrieve sku #
            
+    
+            String query = "select SKU from AmazonListing";
+              
+            
+            Statement st = connection.createStatement();
+            
            
-           for(int i = 0; i<str.size();i++)
-           {
-        	   
-        	   
-        	   System.out.println(str.get(i));
-        	   
-        	   
-           }
-           
-           
-         
-         
-       } catch (IOException e) {
-           e.printStackTrace();
-       } finally {
-           if (fileInputStream != null) {
-               try {
-				fileInputStream.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-           }
-       }
-       
+           //Intialize Arraylist to store sku;
+            ArrayList<String> str = new ArrayList<String>();
+            
+         // execute the preparedstatement, and get result
+            ResultSet rs = st.executeQuery(query);
+    	
+    	//use object attribute to store result, then store object attributes to a list
+            
+            AmazonListing al = new AmazonListing(query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query, query);
+    	
+    	//while there is sku in result, stored it in object, then add object to arraylist
+    	
+            while(rs.next()){
+         	   
+           	 
+         	   //set retrieved ordernumbers from resultset rs to al object
+         	al.setSku(rs.getString("SKU"));
+         	
+         	//write  al object to arraylist of string str
+         	str.add(al.getSku());
+         	   
+    
+         	   
+         	   
+            }
+    	
+            //test and try 
 
+		    for(int i = 0; i<str.size();i++)
+		    {
+		    	
+		    	
+		    	System.out.println(str.get(i));
+		    	
+		    	
+		    }
+            
+    	
+    	
+		    //after retrieving the result, close the connection
+            connection.close();
+            
+    	
+    	
         // Get a client connection.
         // Make sure you've set the variables in MarketplaceWebServiceProductsSampleConfig.
         MarketplaceWebServiceProductsClient client = MarketplaceWebServiceProductsSampleConfig.getClient();
@@ -223,257 +417,60 @@ public class GetMyPriceForSKUSample {
         
         // Create a request.
         GetMyPriceForSKURequest request = new GetMyPriceForSKURequest();
-        String sellerId = "****";
+        String sellerId = "0";
         request.setSellerId(sellerId);
-        String mwsAuthToken = "***";
+        String mwsAuthToken = "0";
         request.setMWSAuthToken(mwsAuthToken);
-        String marketplaceId = "***";
+        String marketplaceId = "0";
         request.setMarketplaceId(marketplaceId);
 
-        
-        SellerSKUListType sellerSKUList = new SellerSKUListType();
+        //initialize for request input
+        SellerSKUListType listofskus = new SellerSKUListType();
         
     
-        
-        
-        
-        request.setSellerSKUList(sellerSKUList);
-        
-    //unable to send all request once, reaches maxium, need to send one at a time.  
-     for (int i =0;i<str.size();i++)
-    	 
-     {
-    	 
-         List<String> a = new ArrayList<String>();
-    	 
-    	 a.add(str.get(i));
-   
-    	 sellerSKUList.setSellerSKU(a);
-    	 
-  
-        // Make the call.
-        String r = GetMyPriceForSKUSample.invokeGetMyPriceForSKU(client, request).toXML();
-        
-        
-        
-         /*    System.out.println(r);*/
-     
-        
-//sax parser for xml, retrieve selling price
+        //only accept 20 sku  at a time, this code is to send 20 at a time.  Lists.partition is google lang
+        for (List<String> skupartition : Lists.partition(str, 20)) {
+      	  
+      	  System.out.println(skupartition.size());
+      	  
+      	  //set a list of size 50 to request
+      	    listofskus.setSellerSKU(skupartition);
+      	  
+          //set request
+      	    request.setSellerSKUList(listofskus);
 
-        try {
-        	
-
-        	SAXParserFactory factory = SAXParserFactory.newInstance();
-        	SAXParser saxParser = factory.newSAXParser();
-
-        	DefaultHandler handler = new DefaultHandler() {
-
-        	boolean SellerSKU = false;
-        
-            //Only need to read sku once, this variable is to avoid the reprint of sku twice.
-            boolean toprint = true;
-        	
-       
-        	boolean SellingPrice = false;
-        	
-
-        	public void startElement(String uri, String localName,String qName, 
-                        Attributes attributes) throws SAXException {
-
-        		/*System.out.println("Start Element :" + qName);*/
-        		
-        		if (qName.equalsIgnoreCase("ListingPrice") ) {
-        		
-        			
-        		  SellingPrice = true;
-        		    
-        			 
-        		}
-        		
-        		if (qName.equalsIgnoreCase("SellerSKU")) {
-        			SellerSKU = true;
-        			
-        		}
-
-       		
-
-        	}
-
-        	public void endElement(String uri, String localName,
-        		String qName) {
-
-
-				
-        		
-        		if (qName.equalsIgnoreCase("ListingPrice")) {
-        			
-        			SellingPrice = false;
-        		}
-        		
-        		if (qName.equalsIgnoreCase("SellerSKU")) {
-        			   SellerSKU = false;
-        		}
-
-        		
-        	}
-
-        	public void characters(char ch[], int start, int length) {
-
-        
-        		
-        		if (SellerSKU && toprint) {
-        			
-        			
-        			System.out.println(" SellerSKU : " + new String(ch, start, length));
-        			
-        			String sku = new String(ch, start, length);
-        			 
-        			 s= sku;
- 	
-        			 toprint = false;
-        			
-        			
-        			 
-        		}
-
-      
-        		
-        		if (SellingPrice) {
-        			
-        			String c = new String(ch, start, length);
-        			 
-        			 if(c.contains("USD"))
-        			 {
-        				 
-        				 
-        				 System.out.println("this is currency code");
-        				 
-        			 }
-        			 else
-        			 {
-        				 System.out.println("Amount : " + new String(ch, start, length));
-        	
-        				 String bp = new String(ch, start, length);
-        			 
-        				 System.out.println("selling price is " + bp);
-        	                  
-        				 sp = bp;
-        			 }
-        			 
-        		
-        			 newmap.put(s,sp);
-        			
-        		}
-        		
-        		
-        		
-     
-                       
-        		
-        	}
-
-             };
-
-            saxParser.parse(new InputSource(new StringReader(r)), handler);
-             
-     
+            // Make the call.
+      	  GetMyPriceForSKUSample.invokeGetMyPriceForSKU(client, request);
             
-	           
-	 
-	           
-         
-             } catch (Exception e) {
-            	 
-            	 
-               e.printStackTrace();
-             }
-          
-           }
+            
+      	  System.out.println("Im about to get another set");
+      	
+      	
+      	
+            //time paused for each request, time out in mili seconds. 
+            Thread.sleep(10000);
+            
+            
+            
+            
+            
+            
+            
+      	}
+        
+        
+        
 
-     
-     
-     
-     //write retrieved price to excel     
-     
-     	HSSFWorkbook wb = new HSSFWorkbook();
-     	
-     	
-		HSSFSheet sheet = wb.createSheet("new sheet");
-     
-	
-		 int rowIndex = 1; 
+        
+        
+        }  catch (SQLException e) {
+            throw new IllegalStateException("Cannot connect the database!", e);
+        }
 
-     
-		 	for (Entry<String, String> entry : newmap.entrySet()) {
-        	
-        	
-        	
-	             String key = entry.getKey();
-	             String values = entry.getValue();
-	            
-	              
-	              Row row = sheet.createRow(rowIndex++);
-	              
-			      
-	              	sheet.createRow(0).createCell(0).setCellValue("SKU");
-	              	
-			        sheet.getRow(0).createCell(1).setCellValue("Selling Price");
-	              
-			        
-			        row.createCell(0).setCellValue(key);
-			        
-			        
-			        row.createCell(1).setCellValue(values);
-			        
-			        
-	              
-	             
-			        System.out.println("Key = " + key);
-			        
-                   
-			        
-			        System.out.println("Values = " + values );
-			        
-			              
-			        
-	              
-	          }
-	         
-		 	
-		 	
-	     
-		        String fileName = "Y:\\Staffs\\Joey\\Developer\\JoeyAdvisor\\AmazonSellingPrice.xls";
-		        
-		        
-		        
-		        
-		        
-		        FileOutputStream fileOut = new FileOutputStream(fileName);
-		        
-		        
-		        
-		        
-		        
-		        wb.write(fileOut);
-		        
-		        
-		        
-		        
-				 
-		        
-		        fileOut.close();
-		        
-   
-
-		        
-		        
-		        
-		        System.out.println("file created");
-	
-		        
-		        
-	
-	    }
-
+        
+        
+        
+    }
+    
 }
+        

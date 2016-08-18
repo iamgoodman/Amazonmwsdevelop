@@ -26,10 +26,10 @@ public class MarketplaceWebServiceProductsSampleConfig {
 
 
     /** Developer AWS access key. */
-    private static final String accessKey = "***";
+    private static final String accessKey = "0";
 
     /** Developer AWS secret key. */
-    private static final String secretKey = "****";
+    private static final String secretKey = "0";
 
     /** The client application name. */
     private static final String appName = "MyAWESOMEProductExporter'";
